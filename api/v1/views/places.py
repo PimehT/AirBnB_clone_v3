@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """ places module for the API """
 from api.v1.views import app_views
-from flask import jsonify, request
+from flask import jsonify, request, abort
 from models import storage
 from models.amenity import Amenity
 from models.city import City
@@ -20,7 +20,8 @@ def get_places(city_id):
     return jsonify(places)
 
 
-@app_views.route('/places/<place_id>', methods=['GET'])
+@app_views.route('/places/<place_id>', strict_slashes=False,
+                 methods=['GET'])
 def get_place(place_id):
     place = storage.get(Place, place_id)
     if place is None:
@@ -28,7 +29,8 @@ def get_place(place_id):
     return jsonify(place.to_dict())
 
 
-@app_views.route('/places/<place_id>', methods=['DELETE'])
+@app_views.route('/places/<place_id>', strict_slashes=False,
+                 methods=['DELETE'])
 def delete_place(place_id):
     place = storage.get(Place, place_id)
     if place is None:
@@ -74,3 +76,33 @@ def update_place(place_id):
             setattr(place, key, value)
     place.save()
     return jsonify(place.to_dict()), 200
+
+@app_views.route('/places_search', methods=['POST'], strict_slashes=False)
+def places_search():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Not a JSON"}), 400
+
+    states = data.get('states', [])
+    cities = data.get('cities', [])
+    amenities = data.get('amenities', [])
+
+    if not states and not cities and not amenities:
+        places = storage.all(Place).values()
+    else:
+        places = []
+        for state_id in states:
+            state = storage.get(State, state_id)
+            if state:
+                for city in state.cities:
+                    places.extend(city.places)
+        for city_id in cities:
+            city = storage.get(City, city_id)
+            if city:
+                places.extend(city.places)
+
+    if amenities:
+        amenities = [storage.get(Amenity, amenity_id) for amenity_id in amenities]
+        places = [place for place in places if all(amenity in place.amenities for amenity in amenities)]
+
+    return jsonify([place.to_dict() for place in places]), 200
