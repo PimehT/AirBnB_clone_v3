@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" places module for the API """
+"""Places module for the API."""
 from api.v1.views import app_views
 from flask import jsonify, request
 import logging
@@ -84,6 +84,10 @@ def update_place(place_id):
 
 @app_views.route('/places_search', methods=['POST'], strict_slashes=False)
 def places_search():
+    """
+    Retrieves all Place objects depending of the JSON in
+    the body of the request.
+    """
     logging.debug('Starting places_search function')
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
