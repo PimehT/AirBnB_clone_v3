@@ -56,8 +56,7 @@ class TestApp(BaseTestCase):
         """Test CORS."""
         resp = self.client.get('/api/v1/status')
         header = 'Access-Control-Allow-Origin'
-        if resp.headers.get('Access-Control-Allow-Origin') is None:
-            self.fail(f"Response Header {header} not found")
-            return
+        resp_header = resp.headers.get('Access-Control-Allow-Origin')
+        self.assertIsNotNone(resp_header)
         self.assertEqual(resp.headers.get(header), "0.0.0.0",
                          msg="Response header {header} not '0.0.0.0'")

@@ -81,6 +81,7 @@ def update_place(place_id):
     place.save()
     return jsonify(place.to_dict()), 200
 
+
 @app_views.route('/places_search', methods=['POST'], strict_slashes=False)
 def places_search():
     logging.debug('Starting places_search function')
