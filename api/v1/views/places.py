@@ -84,6 +84,8 @@ def places_search():
     Retrieves all Place objects depending of the JSON in
     the body of the request.
     """
+    if request.is_json is False:
+        return jsonify({"error": "Not a JSON"}), 400
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({"error": "Not a JSON"}), 400
