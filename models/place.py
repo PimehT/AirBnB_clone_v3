@@ -49,7 +49,6 @@ class Place(BaseModel, Base):
         price_by_night = 0
         latitude = 0.0
         longitude = 0.0
-        amenity_ids = []
 
     def __init__(self, *args, **kwargs):
         """initializes Place"""
@@ -77,3 +76,25 @@ class Place(BaseModel, Base):
                 if amenity.place_id == self.id:
                     amenity_list.append(amenity)
             return amenity_list
+
+    def to_dict(self):
+        """Over write so as ro remove amenities."""
+        super_dict = super().to_dict()
+        if 'amenities' in super_dict:
+            del super_dict['amenities']
+        return super_dict
+
+
+'''
+    def to_dict(self):
+        """ Overwrite so as to return ids of amenites."""
+        super_dict = super().to_dict()
+        amenity_ids = []
+        super_amenities = super_dict.get('amenities')
+        for amenity in super_amenities:
+            amenity_ids.append(amenity.id)
+        super_dict['amenities_id'] = amenity_ids
+        if 'amenities' in super_dict:
+            del super_dict['amenities']
+        return super_dict
+'''
