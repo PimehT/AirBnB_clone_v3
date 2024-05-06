@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Places module for the API."""
+""" places module for the API """
 from api.v1.views import app_views
 from flask import jsonify, request
 import logging
@@ -81,13 +81,8 @@ def update_place(place_id):
     place.save()
     return jsonify(place.to_dict()), 200
 
-
 @app_views.route('/places_search', methods=['POST'], strict_slashes=False)
 def places_search():
-    """
-    Retrieves all Place objects depending of the JSON in
-    the body of the request.
-    """
     logging.debug('Starting places_search function')
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
@@ -117,21 +112,6 @@ def places_search():
             logging.debug(f'Processing city_id: {city_id}')
             city = storage.get(City, city_id)
             if city:
-                # ensure no duplicates
-                for place in city.places:
-                    if place.id not in (place.id for place in places):
-                        places.append(place)
-
-    # filter by amenity
-    if len(amenities) > 0:
-        place_list = []
-        for place in places:
-            for place_amenity in place.amenities:
-                if place_amenity.id in amenities:
-                    place_list.append(place.to_dict())
-                    break
-    else:
-        place_list = [place.to_dict() for place in places]
-
+                places.extend(city.places)
     logging.debug('Ending places_search function')
-    return jsonify(place_list), 200
+    return jsonify([place.to_dict() for place in places]), 200
