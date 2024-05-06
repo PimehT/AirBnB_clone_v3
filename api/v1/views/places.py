@@ -113,6 +113,21 @@ def places_search():
             logging.debug(f'Processing city_id: {city_id}')
             city = storage.get(City, city_id)
             if city:
-                places.extend(city.places)
+                # ensure no duplicates
+                for place in city.places:
+                    if place.id not in (place.id for place in places):
+                        places.append(place)
+
+    # filter by amenity
+    if len(amenities) > 0:
+        place_list = []
+        for place in places:
+            for place_amenity in place.amenities:
+                if place_amenity.id in amenities:
+                    place_list.append(place.to_dict())
+                    break
+    else:
+        place_list = [place.to_dict() for place in places]
+
     logging.debug('Ending places_search function')
-    return jsonify([place.to_dict() for place in places]), 200
+    return jsonify(place_list), 200
