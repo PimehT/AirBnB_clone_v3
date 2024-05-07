@@ -50,10 +50,6 @@ class Place(BaseModel, Base):
         latitude = 0.0
         longitude = 0.0
 
-    def __init__(self, *args, **kwargs):
-        """initializes Place"""
-        super().__init__(*args, **kwargs)
-
     if models.storage_t != 'db':
         @property
         def reviews(self):
@@ -71,30 +67,29 @@ class Place(BaseModel, Base):
             """getter attribute returns the list of Amenity instances"""
             from models.amenity import Amenity
             amenity_list = []
-            # all_amenities = models.storage.all(Amenity)
-            # for amenity in all_amenities.values():
-            #     if amenity.place_id == self.id:
-            #         amenity_list.append(amenity)
+            for amenity_id in self.amenity_ids:
+                obj = models.storage.get(Amenity, amenity_id)
+                if obj:
+                    amenity_list.append(obj)
             return amenity_list
+
+        @amenities.setter
+        def amenities(self, amenity_obj):
+            """Setter for amenities."""
+            from models.amenity import Amenity
+            if amenity_obj and isinstance(amenity_obj, Amenity):
+                self.amenity_ids.append(amenity_obj.id)
+
+    def __init__(self, *args, **kwargs):
+        self.amenity_ids = []
+        super().__init__(*args, **kwargs)
 
     def to_dict(self):
         """Over write so as ro remove amenities."""
         super_dict = super().to_dict()
         if 'amenities' in super_dict:
             del super_dict['amenities']
+        if models.storage_t != 'db':
+            # add amenity ids
+            super_dict['amenity_ids'] = self.amenity_ids
         return super_dict
-
-
-'''
-    def to_dict(self):
-        """ Overwrite so as to return ids of amenites."""
-        super_dict = super().to_dict()
-        amenity_ids = []
-        super_amenities = super_dict.get('amenities')
-        for amenity in super_amenities:
-            amenity_ids.append(amenity.id)
-        super_dict['amenities_id'] = amenity_ids
-        if 'amenities' in super_dict:
-            del super_dict['amenities']
-        return super_dict
-'''
